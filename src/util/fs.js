@@ -590,12 +590,11 @@ export async function copyBulk(
       };
       port1.on('error', onError);
       port1.on('message', onMessage);
+      port1.on('close', () => onError('copyBulk: worker closed port early.'));
       running += 1;
-      worker.postMessage({actions: ac.map(a => ({src: a.src, dest: a.dest})), port: port2}, [port2]);
+      worker.postMessage({actions: ac, port: port2}, [port2]);
     });
-  })
-  .finally(() => killWorkers(workers));
-
+  }).finally(() => killWorkers(workers));
 
   // we need to copy symlinks last as they could reference files we were copying
   const symlinkActions: Array<CopySymlinkAction> = actions.symlink;
